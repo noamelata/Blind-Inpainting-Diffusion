@@ -150,11 +150,6 @@ def main(opt, args):
     np.save("quantile_250_09.npy", quantile_250.detach().cpu().numpy())
 
 
-
-
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', type=str, default='configs/celeba_hq_q005.json',

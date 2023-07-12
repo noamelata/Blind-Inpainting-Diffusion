@@ -70,7 +70,7 @@ def main_worker(gpu, ngpus_per_node, opt, wandb_run=False):
     phase_logger.info('Create the log file in directory {}.\n'.format(opt['path']['experiments_root']))
 
     if gpu == 0 and wandb_run:
-        wandb_run = wandb.init(project="Conffusion", entity="noamelata", config={})
+        wandb_run = wandb.init(project="Conffusion", entity=wandb_run, config={})
         wandb_run.config.update(opt)
     else:
         wandb_run = None
@@ -124,14 +124,14 @@ def main_worker(gpu, ngpus_per_node, opt, wandb_run=False):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', type=str, default='config/colorization_mirflickr25k.json',
+    parser.add_argument('-c', '--config', type=str, default='configs/celeba_hq_q005.json',
                         help='JSON file for configuration')
     parser.add_argument('-b', '--batch', type=int, default=None, help='Batch size in every gpu')
     parser.add_argument('-p', '--phase', type=str, choices=['train', 'test'], help='Run train or test', default='train')
     parser.add_argument('-d', '--debug', action='store_true')
     parser.add_argument('-P', '--port', default='21012', type=str)
     parser.add_argument('-gpu', '--gpu_ids', type=str, default=None)
-    parser.add_argument('--wandb', action='store_true', default=False)
+    parser.add_argument('--wandb', type=str, default='', help='W & B entity to use for wandb, leave empty for no W & B sync')
 
     ''' parser configs '''
     args = parser.parse_args()

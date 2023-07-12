@@ -19,7 +19,7 @@
             "which_dataset": {  // import designated dataset using arguments 
                 "name": "DirDataset", // import Dataset() class / function(not recommend) from data.dataset.py (default is [data.dataset.py])
                 "args":{ // arguments to initialize dataset
-                    "data_root": "/home/noamelata/tmp/pycharm_project_448/datasets/celebahq/",
+                    "data_root": "/datasets/celebahq/",
                     "image_size": [256, 256],
                     "data_len": -1
                 }
@@ -38,7 +38,7 @@
             "which_dataset": {  // import designated dataset using arguments
                 "name": "DirDataset", // import Dataset() class / function(not recommend) from data.dataset.py (default is [data.dataset.py])
                 "args":{ // arguments to initialize dataset
-                    "data_root": "/home/noamelata/tmp/pycharm_project_448/datasets/celebahq_test/",
+                    "data_root": "/datasets/celebahq_test/",
                     "data_len": 4,
                     "image_size": [256, 256]
                 }
