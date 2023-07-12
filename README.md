@@ -45,7 +45,3 @@ python calibrate.py -c configs/celeba_hq_q005.json \
                     -ml <lower quantile model checkpoint> -mh <higher quantile model checkpoint> \
                     --artifact ["red", "rainbow", "butterflys"]
 ```
-
-### Refrences
-* [Bootstrap Your Own Latent: A New Approach to Self-Supervised Learning](https://arxiv.org/abs/2006.07733). 
-* [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929)
