@@ -130,12 +130,9 @@ def main(opt, args):
     opt['datasets']['train']['which_dataset']['args']['data_root'] = "/home/noamelata/tmp/conff/datasets/test/celebahq_test"
     train_dataset = init_obj(opt['datasets']['train']['which_dataset'], phase_logger, default_file_name='data.dataset',
                              init_type='Dataset')
-    val_dataset = init_obj(opt['datasets']['validation']['which_dataset'], phase_logger,
-                           default_file_name='data.dataset', init_type='Dataset')
 
     data_sampler = None
     loader_opts = dict(**opt['datasets']['train']['dataloader']['args'])
-    val_loader_opts = dict(**opt['datasets']['validation']['dataloader']['args'])
     if opt['distributed']:
         data_sampler = DistributedSampler(train_dataset,
                                           shuffle=opt['datasets']['train']['dataloader']['args']['shuffle'],
@@ -143,31 +140,18 @@ def main(opt, args):
                                           rank=opt['global_rank'])
         loader_opts["shuffle"] = False
 
-    val_loader = data.DataLoader(val_dataset, **val_loader_opts)
+    calib_loader = data.DataLoader(train_dataset, sampler=data_sampler, **loader_opts)
+
+    quantile_750 = calibrate(model_low, model_high, calib_loader, diffusion, 750, 0.9, device)
+    quantile_500 = calibrate(model_low, model_high, calib_loader, diffusion, 500, 0.9, device)
+    quantile_250 = calibrate(model_low, model_high, calib_loader, diffusion, 250, 0.9, device)
+    np.save("quantile_750_09.npy", quantile_750.detach().cpu().numpy())
+    np.save("quantile_500_09.npy", quantile_500.detach().cpu().numpy())
+    np.save("quantile_250_09.npy", quantile_250.detach().cpu().numpy())
 
 
-    quantile_750 = torch.from_numpy(np.load(f"quantile_750_09.npy")).to(device)
-    quantile_500 = torch.from_numpy(np.load(f"quantile_500_09.npy")).to(device)
-    quantile_250 = torch.from_numpy(np.load(f"quantile_250_09.npy")).to(device)
-    quantiles = {750: quantile_750, 500: quantile_500, 250: quantile_250}
 
-    models = (model_low, model_high, model)
 
-    loaded = np.load("inp_masks/lorem3.npy")
-    rainbow = (torchvision.io.read_image("rainbow256.png").to(device) / 255) * 2 - 1
-    mask = torch.from_numpy(loaded).to(device)[None, None, :, :]
-    if args.artifact == "red":
-        artifact_func = lambda x: x * mask + (1 - mask) * torch.cat(
-            [torch.ones_like(x[:, :1, :, :]), -torch.ones_like(x[:, 1:, :, :])], dim=1)
-    elif args.artifact == "rainbow":
-        artifact_func = lambda x: x * mask + (1 - mask) * rainbow
-    elif args.artifact == "butterflys":
-        butterflys = (torchvision.io.read_image("butterflys2.png").to(device) / 255)
-        mask = 1 - butterflys[3]
-        butterflys = butterflys[0:3] * 2 - 1
-        artifact_func = lambda x: x * mask + (1-mask) * butterflys
-
-    evaluate(val_loader, artifact_func, device, quantiles, diffusion, diffusion2, models)
 
 
 
@@ -180,8 +164,6 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch', type=int, default=1)
     parser.add_argument('-o', '--output', type=str, required=True)
     parser.add_argument('--seed', type=int, default=0)
-    parser.add_argument('-a', '--artifact', type=str, choices=['red', 'rainbow', 'butterflys'],
-                        help='type of artifact to add to the image', default='red')
     parser.add_argument('--num-workers', type=int, default=0)
     parser.add_argument('-P', '--port', default='21012', type=str)
     parser.add_argument('-gpu', '--gpu_ids', type=str, default="0")
