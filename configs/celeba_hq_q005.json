@@ -26,8 +26,8 @@
             },
             "dataloader":{
                 "args":{ // arguments to initialize train_dataloader
-                    "batch_size": 16, // batch size in each gpu
-                    "num_workers": 20,
+                    "batch_size": 2, // batch size in each gpu
+                    "num_workers": 0,
                     "shuffle": true,
                     "pin_memory": true,
                     "drop_last": true
@@ -39,7 +39,7 @@
                 "name": "DirDataset", // import Dataset() class / function(not recommend) from data.dataset.py (default is [data.dataset.py])
                 "args":{ // arguments to initialize dataset
                     "data_root": "/home/noamelata/tmp/pycharm_project_448/datasets/celebahq_test/",
-                    "data_len": 4,
+                    "data_len": 8,
                     "image_size": [256, 256]
                 }
             },

@@ -566,6 +566,11 @@ class GaussianDiffusion:
         return final["sample"]
 
 
+    def projection(self, predicted_im, degraded_im, mask):
+        mask = mask.int()
+        return mask * (self.gamma * degraded_im + (1 - self.gamma) * predicted_im) + (1 - mask) * predicted_im
+
+
     def ddim_sample(
         self,
         model,
@@ -576,6 +581,8 @@ class GaussianDiffusion:
         cond_fn=None,
         model_kwargs=None,
         eta=0.0,
+        mask=None,
+        y=None,
     ):
         """
         Sample x_{t-1} from the model using DDIM.
@@ -594,6 +601,8 @@ class GaussianDiffusion:
 
         # Usually our model outputs epsilon, but we re-derive it
         # in case we used x_start or x_prev prediction.
+        if t[0].item() >= self.num_timesteps // 4:
+            out["pred_xstart"] = self.projection(out["pred_xstart"], y, mask)
         eps = self._predict_eps_from_xstart(x, t, out["pred_xstart"])
 
         alpha_bar = _extract_into_tensor(self.alphas_cumprod, t, x.shape)
@@ -665,6 +674,8 @@ class GaussianDiffusion:
         device=None,
         progress=False,
         eta=0.0,
+        mask=None,
+        y=None,
     ):
         """
         Generate samples from the model using DDIM.
@@ -682,6 +693,8 @@ class GaussianDiffusion:
             device=device,
             progress=progress,
             eta=eta,
+            mask=mask,
+            y=y
         ):
             final = sample
         return final["sample"]
@@ -698,6 +711,8 @@ class GaussianDiffusion:
         device=None,
         progress=False,
         eta=0.0,
+        mask=None,
+        y=None,
     ):
         """
         Use DDIM to sample from the model and yield intermediate samples from
@@ -711,6 +726,7 @@ class GaussianDiffusion:
             img = noise
         else:
             img = th.randn(*shape, device=device)
+        # img = self.q_sample(y, th.tensor([self.num_timesteps - 1] * shape[0], device=device), img)
         indices = list(range(self.num_timesteps))[::-1]
 
         if progress:
@@ -731,6 +747,8 @@ class GaussianDiffusion:
                     cond_fn=cond_fn,
                     model_kwargs=model_kwargs,
                     eta=eta,
+                    mask=mask,
+                    y=y
                 )
                 yield out
                 img = out["sample"]
